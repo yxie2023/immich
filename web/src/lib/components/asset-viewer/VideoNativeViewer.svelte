@@ -336,6 +336,14 @@
 
     stepVideoFrame(videoPlayer, asset.exifInfo?.fps, direction);
   };
+
+  const toggleMute = () => {
+    if (castManager.isCasting || !videoPlayer) {
+      return;
+    }
+
+    videoPlayer.muted = !videoPlayer.muted;
+  };
 </script>
 
 <svelte:body
@@ -358,6 +366,7 @@
     },
     { shortcut: { key: ',' }, preventDefault: true, onShortcut: () => stepFrame(-1) },
     { shortcut: { key: '.' }, preventDefault: true, onShortcut: () => stepFrame(1) },
+    { shortcut: { key: 'm' }, preventDefault: true, onShortcut: toggleMute },
   ]}
 />
 
