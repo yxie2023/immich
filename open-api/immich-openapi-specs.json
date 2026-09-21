@@ -22218,6 +22218,13 @@
             "nullable": true,
             "type": "number"
           },
+          "fps": {
+            "default": null,
+            "description": "Source FPS",
+            "format": "double",
+            "nullable": true,
+            "type": "number"
+          },
           "iso": {
             "default": null,
             "description": "ISO sensitivity",

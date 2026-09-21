@@ -9,6 +9,7 @@
   import { mediaCapabilitiesManager } from '$lib/managers/media-capabilities-manager.svelte';
   import { autoPlayVideo, lang, loopVideo as loopVideoPreference } from '$lib/stores/preferences.store';
   import { getAssetHlsSessionUrl, getAssetHlsUrl, getAssetMediaUrl, getAssetPlaybackUrl } from '$lib/utils';
+  import { stepVideoFrame } from './video-utils';
   import { AssetMediaSize, type AssetResponseDto } from '@immich/sdk';
   import { Icon, LoadingSpinner, shortcuts } from '@immich/ui';
   import {
@@ -327,6 +328,14 @@
   // The time is only refreshed on HLS fragment decode by default,
   // so manually emit events on seek to update it immediately.
   const onSeeking = (event: Event) => event.currentTarget?.dispatchEvent(new Event('timeupdate'));
+
+  const stepFrame = (direction: -1 | 1) => {
+    if (castManager.isCasting || !hasLoadedMetadata || !videoPlayer) {
+      return;
+    }
+
+    stepVideoFrame(videoPlayer, asset.exifInfo?.fps, direction);
+  };
 </script>
 
 <svelte:body
@@ -347,6 +356,8 @@
           ? (videoPlayer.currentTime = Math.min(videoPlayer.currentTime + 0.4, videoPlayer.duration))
           : undefined,
     },
+    { shortcut: { key: ',' }, preventDefault: true, onShortcut: () => stepFrame(-1) },
+    { shortcut: { key: '.' }, preventDefault: true, onShortcut: () => stepFrame(1) },
   ]}
 />
 

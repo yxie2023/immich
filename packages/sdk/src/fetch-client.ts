@@ -1191,6 +1191,8 @@ export type ExifResponseDto = {
     fileSizeInByte?: number | null;
     /** Focal length in mm */
     focalLength?: number | null;
+    /** Source FPS */
+    fps?: number | null;
     /** ISO sensitivity */
     iso?: number | null;
     /** GPS latitude */
