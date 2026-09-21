@@ -1,7 +1,7 @@
 import { stepVideoFrame } from './video-utils';
 
 describe('stepVideoFrame', () => {
-  const makeVideo = (currentTime = 1, duration = 10, paused = true) => ({ currentTime, duration, paused });
+  const makeVideo = (currentTime = 1, duration = 10) => ({ currentTime, duration, pause: vi.fn() });
 
   it.each([
     [24, 1 + 1 / 24],
@@ -19,11 +19,33 @@ describe('stepVideoFrame', () => {
     expect(video.currentTime).toBe(1 + 1 / 30);
   });
 
-  it('does not seek while playing or with invalid metadata', () => {
-    for (const video of [makeVideo(1, 10, false), makeVideo(NaN), makeVideo(1, Infinity)]) {
+  it('pauses playback before seeking', () => {
+    const events: string[] = [];
+    let currentTime = 1;
+    const video = {
+      duration: 10,
+      get currentTime() {
+        return currentTime;
+      },
+      set currentTime(value: number) {
+        events.push('seek');
+        currentTime = value;
+      },
+      pause: () => {
+        events.push('pause');
+      },
+    };
+
+    stepVideoFrame(video, 30, 1);
+    expect(events).toEqual(['pause', 'seek']);
+  });
+
+  it('does not seek with invalid metadata', () => {
+    for (const video of [makeVideo(NaN), makeVideo(1, Infinity)]) {
       const currentTime = video.currentTime;
       stepVideoFrame(video, 30, 1);
       expect(video.currentTime).toBe(currentTime);
+      expect(video.pause).toHaveBeenCalledOnce();
     }
   });
 
