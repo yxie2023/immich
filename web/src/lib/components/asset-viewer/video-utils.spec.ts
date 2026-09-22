@@ -1,7 +1,7 @@
 import { stepVideoFrame } from './video-utils';
 
 describe('stepVideoFrame', () => {
-  const makeVideo = (currentTime = 1, duration = 10) => ({ currentTime, duration, pause: vi.fn() });
+  const makeVideo = (currentTime = 1, duration = 10) => ({ currentTime, duration, seeking: false, pause: vi.fn() });
 
   it.each([
     [24, 1 + 1 / 24],
@@ -24,6 +24,7 @@ describe('stepVideoFrame', () => {
     let currentTime = 1;
     const video = {
       duration: 10,
+      seeking: false,
       get currentTime() {
         return currentTime;
       },
@@ -38,6 +39,37 @@ describe('stepVideoFrame', () => {
 
     stepVideoFrame(video, 30, 1);
     expect(events).toEqual(['pause', 'seek']);
+  });
+
+  it('waits for the active seek to finish before stepping again', () => {
+    let currentTime = 1;
+    let seeking = false;
+    let seekCount = 0;
+    const video = {
+      duration: 10,
+      pause: vi.fn(),
+      get currentTime() {
+        return currentTime;
+      },
+      set currentTime(value: number) {
+        currentTime = value;
+        seeking = true;
+        seekCount++;
+      },
+      get seeking() {
+        return seeking;
+      },
+    };
+
+    stepVideoFrame(video, 30, 1);
+    stepVideoFrame(video, 30, 1);
+    expect(currentTime).toBe(1 + 1 / 30);
+    expect(seekCount).toBe(1);
+
+    seeking = false;
+    stepVideoFrame(video, 30, 1);
+    expect(currentTime).toBeCloseTo(1 + 2 / 30);
+    expect(seekCount).toBe(2);
   });
 
   it('does not seek with invalid metadata', () => {
